@@ -20,6 +20,7 @@ class format:
     CYAN = "\033[96m"
     WHITE = "\033[97m"
     BOLD = "\033[1m"
+    ITALIC = "\033[3m"
     UNDERLINE = "\033[4m"
     END = "\033[0m"
 
@@ -74,9 +75,11 @@ def program_boot_message():
     print(format.GREEN + format.BOLD + "\n=========== Automatic Network Rebooter ( version: 0.0.0 ) ===========" + format.END)
     print("This python script monitors the network's internet connectivity and automatically reboots\nthe network if a connection issue is detected. It's designed for the Virgin Media Hub 5\nrouter / modem")
     print("Contributions are very much welcome! Improve the program by adding more features, settings\nand wider modem / router support.")
+    print("\nPlease read the README.md file for more information on how to use the program.")
+    print(f"Github Repository: {format.YELLOW}https://github.com/majdiJ/automatic-network-rebooter{format.END}")
     print(f"\nCreated by {format.BOLD + format.BLUE}Majdi Jaigirdar{format.END} - Check out my github at {format.YELLOW}https://github.com/majdiJ" + format.END)
     print(f"visit my website at {format.YELLOW}https://majdij.github.io{format.END} and {format.YELLOW}https://alamnetwork.com/{format.END}")
-    print(format.GREEN + "======================================================================" + format.END + "\n\n")
+    print(format.GREEN + "======================================================================" + format.END)
 
 # Load the configuration settings from the config.json file
 def load_configuration_settings():
@@ -97,7 +100,7 @@ def confirm_settings_to_load():
     # the useer may put their network at risk to a loop of reboots that may cause the ISP to limit the
     # connection or lock the router. If the user only has remote access to the router, they may lose
     # access to the router and the network if the configuration is not set up correctly.
-    print(format.BOLD + format.RED + "\n\n====================  Warning:  ====================" + format.END)
+    print(format.BOLD + format.RED + "\n====================  Warning:  ====================" + format.END)
     print("Please confirm the configuration settings carefully before starting the program.")
     print("If the configuration settings are not set up correctly, the program may not work as expected.")
     print("If the program is not set up correctly, it may cause the network to go into a loop of reboots.")
@@ -108,7 +111,7 @@ def confirm_settings_to_load():
     print(format.RED + "You are responsible for the configuration settings and the network." + format.END)
     print(format.BOLD + format.RED + "=====================================================" + format.END)
 
-    print(format.BOLD + format.PINK + "\nDo you want to start the program with these settings?" + format.END)
+    print(format.BOLD + format.RED + "\nDo you want to start the program with these settings?" + format.END)
     print("If you choose 'Y', the program will start monitoring the network with the configuration settings loaded.")
     print("If you choose 'N', the program will end")
     start_program = user_input_yes_no()
@@ -180,10 +183,61 @@ def logout(base_url, token):
 
     try:
         response = requests.delete(url, headers=headers)
-        print("Response Code:", response.status_code)
-        print("Response Body:", response.text)
+        if response.status_code == 204:
+            print(f"{format.GREEN}Logout successful!{format.END}")
+        else:
+            print("Logout failed. Server response:", response.text)
     except requests.exceptions.RequestException as e:
         print("Error:", e)
+
+# Test: Login to the router
+def test_login_to_router(configuration_settings):
+    router_ip_address = configuration_settings["router_details"]["router_ip_address"]
+    router_password = configuration_settings["router_details"]["router_password"]
+    base_url = f"http://{router_ip_address}"
+
+    # Generate login token
+    print(f" >>> Generating login token for {router_ip_address}...")
+    token = generate_login_token(base_url, router_password)
+    if token:
+        print(f"     - {format.GREEN}{format.BOLD}Login test successful!{format.END}")
+        time.sleep(2)
+        
+        # Logout
+        print(" >>> Logging out...")
+        logout(base_url, token)
+    else:
+        print("Login test failed. Please check the configuration, the router IP address and password.")
+        print("If you need help, please read the README.md and/or visit the Github repository.")
+        print("Stopping the program...")
+        exit()
+
+# Test: Reboot the network
+def test_reboot_network(configuration_settings):
+    router_ip_address = configuration_settings["router_details"]["router_ip_address"]
+    router_password = configuration_settings["router_details"]["router_password"]
+    base_url = f"http://{router_ip_address}"
+
+    # Generate login token
+    print(f" >>> Generating login token for {router_ip_address}...")
+    token = generate_login_token(base_url, router_password)
+    if token:
+        print(f"     - {format.GREEN}{format.BOLD}Login successful!{format.END}")
+        time.sleep(2)
+
+        # Reboot the system using the token
+        print(" >>> Rebooting the network...")
+        reboot_system(base_url, token)
+
+        # Logout
+        print(" >>> Logging out...")
+        logout(base_url, token)
+    else:
+        print("Reboot test failed. Please check the configuration, the router IP address and password.")
+        print("Make sure your router is supported by the program.")
+        print("If you need help, please read the README.md and/or visit the Github repository.")
+        print("Stopping the program...")
+        exit()
 
 if __name__ == "__main__":
 
@@ -193,18 +247,90 @@ if __name__ == "__main__":
     # Print the program boot message
     program_boot_message()
 
-    # wait for 3 seconds to let the user read the boot message
-    time.sleep(3)
+    # Press to continue
+    print(f"\n{format.ITALIC}Press enter to continue...{format.END}")
+    input()
+
+    # Clear the terminal window
+    os.system("clear")
 
     # check if the config file exists
+    print(f"\n{format.BOLD}Checking to see if `config.json` exists...{format.END}")
+    print(f"`config.json` is the configuration file that stores the settings for the program. Such as the router IP address, password, ping list and more")
+    print(f"If it does not exist, the program will start the program setup wizard to make a new config.json file.")
+
     if os.path.exists("config.json"):
-        print("'config.json' file found. Loading the configuration settings...")
+
+        # Check successful
+        print(f" > {format.GREEN}{format.BOLD}Success!{format.END} `config.json` exists.\n")
+
         configuration_settings = load_configuration_settings()
         
         # Confirm the configuration settings to load
         confirm_settings_to_load()
 
-        print("\nStarting the program with the configuration settings loaded...\n\n")
+        # Clear the terminal window
+        os.system("clear")
+
+        # Check if config.json has the router IP address set
+        print(f"\n{format.BOLD}Checking to see if `config.json` has the router IP address and password set...{format.END}")
+        print(f"You can chose not save these settings in the configuration settings and enter them manually each time the program starts for security reasons. This is optional.")
+
+        if configuration_settings["router_details"]["router_ip_address"] == "" or configuration_settings["router_details"]["router_ip_address"] == None or "router_ip_address" not in configuration_settings["router_details"]:
+            print(f" > {format.RED}{format.BOLD}Unsuccess.{format.END} The router IP address is not set in the configuration settings.")
+            print("Please enter the IP address of the router to continue...")
+            configuration_settings["router_details"]["router_ip_address"] = user_input_ip_address()
+            print(f"Router IP address set to: {configuration_settings['router_details']['router_ip_address']} (not saved in the configuration settings)")
+        else:
+            print(f" > {format.GREEN}{format.BOLD}Success!{format.END} The router IP address is set in the configuration settings.")
+
+        if configuration_settings["router_details"]["router_password"] == "" or configuration_settings["router_details"]["router_password"] == None or "router_password" not in configuration_settings["router_details"]:
+            print(f" > {format.RED}{format.BOLD}Unsuccess.{format.END} The router password is not set in the configuration settings.")
+            print("Please enter the password of the router to continue...")
+            configuration_settings["router_details"]["router_password"] = input("Enter the password of the router: ")
+            print(f"Router password set (not saved in the configuration settings)")
+        else:
+            print(f" > {format.GREEN}{format.BOLD}Success!{format.END} The router password is set in the configuration settings.")
+
+        # Ask the user if they would like to test if the program can login to the router
+        print(f"\n{format.BOLD}{format.CYAN}Do you want to test if the program can login to the router?{format.END}")
+        print("This will test if the program can login to the router using the password provided in the configuration settings.")
+        print("It will attempt to generate a login token, login to the router then logout. It will NOT reboot the network.")
+        print("If you choose 'Y', the program will attempt to login to the router.")
+        print("If you choose 'N', the program will skip the login test.")
+        login_test = user_input_yes_no()
+
+        if login_test.lower() == "y":
+            test_login_to_router(configuration_settings)
+        else:
+            print(f"{format.ITALIC}Skipping the login test...{format.END}")
+
+        # Ask the user if they would like to test if the program can reboot the network
+        print(f"\n{format.BOLD}{format.CYAN}Do you want to test if the program can reboot the network?{format.END}")
+        print("This will test if the program can login to the router, reboot the network then logout.")
+        print("If you choose 'Y', the program will attempt to reboot the network.")
+        print("If you choose 'N', the program will skip the network reboot test.")
+        reboot_test = user_input_yes_no()
+
+        if reboot_test.lower() == "y":
+            test_reboot_network(configuration_settings)
+        else:
+            print(f"{format.ITALIC}Skipping the network reboot test...{format.END}")
+
+        # Clear the terminal window
+        os.system("clear")
+
+        # Ask the user if they would like to start the program now
+        print(f"\n{format.BOLD}{format.CYAN}Do you want to start the program now?{format.END}")
+        print("If you choose 'Y', the program will start monitoring the network with the configuration settings loaded.")
+        print("If you choose 'N', the program will end.")
+        start_program = user_input_yes_no()
+
+        if start_program.lower() == "y":
+            print(f"{format.ITALIC}Starting the program with the configuration settings loaded...{format.END}\n")
+        else:
+            print("Ending the program...")
+            exit()
 
         while True:
             # check the internet connection with the ping list
@@ -231,10 +357,13 @@ if __name__ == "__main__":
                 for i in range(ping_retry_amount):
                     # Ping the address to check the internet connection
                     if ping_address_bool(ping_address):
-                        print(f">>>({format.GREEN}Ping successful{format.END} - {ping_address}")
+                        print(f">>>({format.GREEN}Ping successful{format.END}) - {ping_address} - (attempt: {i + 1}/{ping_retry_amount + 1})")
                         break
                     else:
-                        print(f">>>({format.RED}Ping failed{format.END} - {ping_address}")
+                        if ping_retry_amount > 1:
+                            print(f">>>({format.RED}Ping failed{format.END}) - {ping_address} - Will retry in {ping_retry_interval} seconds (attempt: {i + 1}/{ping_retry_amount + 1})")
+                        else:
+                            print(f">>>({format.RED}Ping failed{format.END}) - {ping_address}")
                         specific_failed_pings += 1
                         time.sleep(ping_retry_interval)
                 
@@ -245,10 +374,12 @@ if __name__ == "__main__":
 
             # Check if threshold is reached, and reboot the network
             if failed_pings >= unreachable_ping_threshold:
-                print(f"\n>>> {format.RED}Internet connection is unstable. Should reboot...{format.END}")
+                print(f"\n>>> {format.RED}Internet connection is considered unstable. ({failed_pings}/{unreachable_ping_threshold} failed pings){format.END}")
+                print(f">>> Rebooting the network...")
+
                 number_of_reboots_in_a_row += 1
+
                 # Reboot the network
-                
                 router_ip_address = configuration_settings["router_details"]["router_ip_address"]
                 router_password = configuration_settings["router_details"]["router_password"]
                 base_url = f"http://{router_ip_address}"
@@ -268,19 +399,27 @@ if __name__ == "__main__":
                     print(">>> Logging out...")
                     logout(base_url, token)
 
+                    # wait after rebooting the network
+                    print(f">>> Waiting for {configuration_settings['network']['network_reboot_interval']} minutes after rebooting the network...")
+                    time.sleep(configuration_settings["network"]["network_reboot_interval"] * 60)
+                    
             else:
-                print(f"\n>>> {format.GREEN}Internet connection is stable. No need to reboot.{format.END}")
+                print(f"\n>>> {format.GREEN}Internet connection is considered stable. ({failed_pings}/{unreachable_ping_threshold} failed pings){format.END}")
                 number_of_reboots_in_a_row = 0
 
             # if the number of reboots in a row is greater than the network reboot retry count, go into cooldown period
             if number_of_reboots_in_a_row >= configuration_settings["network"]["network_reboot_retry_count"]:
-                print(f"\n>>> {format.RED}Network reboot retry count reached. Going into cooldown period for {configuration_settings['network']['network_reboot_cooldown_period']} minutes...{format.END}")
+                print(f">>> {format.RED}Network reboot retry count reached. Going into cooldown period for {configuration_settings['network']['network_reboot_cooldown_period']} minutes...{format.END}")
                 time.sleep(configuration_settings["network"]["network_reboot_cooldown_period"] * 60)
-
+                print(f">>> Cooldown period ended. Resuming network monitoring...")
 
             ping_check_frequency = configuration_settings["ping"]["ping_check_frequency"]
+            print(f">>> Waiting for {ping_check_frequency} minutes before checking the internet connection again...")
             time.sleep(ping_check_frequency * 60)
-            break
     else:
+        # Check failed
+        print(f" > {format.RED}{format.BOLD}Unsuccess.{format.END} `config.json` does not exist.")
+        print(f"{format.ITALIC}Starting the program setup wizard...{format.END}")
+
         program_setup.program_setup_wizzard()
         print("\nRestart the program to start monitoring the network with the configuration settings loaded.")
