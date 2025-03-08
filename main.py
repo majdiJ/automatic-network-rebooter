@@ -83,7 +83,7 @@ def user_input_yes_no(allow_none=False):
 # Program welcome message
 def program_boot_message():
     # Print the program boot message
-    print(format.GREEN + format.BOLD + "\n=========== Automatic Network Rebooter ( version: 0.0.0 ) ===========" + format.END)
+    print(format.GREEN + format.BOLD + "\n=========== Automatic Network Rebooter ( version: 1.0.0 ) ===========" + format.END)
     print("This python script monitors the network's internet connectivity and automatically reboots\nthe network if a connection issue is detected. It's designed for the Virgin Media Hub 5\nrouter / modem")
     print("Contributions are very much welcome! Improve the program by adding more features, settings\nand wider modem / router support.")
     print("\nPlease read the README.md file for more information on how to use the program.")
@@ -101,6 +101,7 @@ def program_boot_message():
     print(" - Network check targets and credentials are fully user-configurable.")
     print(" - The source code is open for review, ensuring complete transparency.")
     print("Read the README.md file for more information on privacy, security and transparency.")
+    print("(For version: 1.0.0)")
     print(format.BOLD + format.CYAN +"===============================================================================" + format.END)
 
 # Load the configuration settings from the config.json file

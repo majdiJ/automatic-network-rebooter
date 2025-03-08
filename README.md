@@ -1,4 +1,4 @@
-# automatic-network-rebooter
+# automatic-network-rebooter (version: 1.0.0)
 
 A Python script that monitors internet connectivity and automatically reboots your network via its admin portal if a connection issue is detected. Designed to run 24/7 on a computer connected to a Virgin Media network.
 
