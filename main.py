@@ -332,10 +332,11 @@ if __name__ == "__main__":
         login_test = user_input_yes_no()
 
         if login_test.lower() == "y":
-            test_login_to_router(configuration_settings)
             loger.write_to_log_file("neutral", "User tested login to the router")
+            test_login_to_router(configuration_settings)
         else:
             print(f"{format.ITALIC}Skipping the login test...{format.END}")
+            loger.write_to_log_file("neutral", "Skipping the login test")
 
         # Ask the user if they would like to test if the program can reboot the network
         print(f"\n{format.BOLD}{format.CYAN}Do you want to test if the program can {format.RED}reboot{format.CYAN} the network?{format.END}")
@@ -348,11 +349,12 @@ if __name__ == "__main__":
             test_reboot_network(configuration_settings)
 
             # Press to continue
-            print(f"\n{format.ITALIC}Press enter to continue...{format.END}")
             loger.write_to_log_file("neutral", "User tested rebooting the network","n/a", "n/a", "yes")
+            print(f"\n{format.ITALIC}Press enter to continue...{format.END}")
             input()
         else:
             print(f"{format.ITALIC}Skipping the network reboot test...{format.END}")
+            loger.write_to_log_file("neutral", "Skipping the network reboot test","n/a", "n/a", "no")
 
         # Clear the terminal window
         os.system("clear")

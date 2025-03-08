@@ -125,18 +125,18 @@ def program_setup_wizzard():
         print("You can change these settings later by editing the 'config.json' file in the program directory.")
 
         # Ask the user to enter the router's IP address / gateway address
-        print(format.BOLD + format.PINK + "\nStep 01/9384: Router IP Address" + format.END)
+        print(format.BOLD + format.PINK + "\nStep 01/11: Router IP Address" + format.END)
         print("Please enter the IP address of your router / modem. This is usually the gateway address.")
         router_ip_address = user_input_ip_address(True)
 
         # Ask the user to enter the router's password
-        print(format.BOLD + format.PINK + "\nStep 02/9384: Router Password" + format.END)
+        print(format.BOLD + format.PINK + "\nStep 02/11: Router Password" + format.END)
         print("Please enter the password of your router / modem. This is the password you use to login to the router's admin panel.")
         print("You can leave this empty to not save it to the config file, but you will be asked to enter it every time the program runs.")
         router_password = input("Enter the router password: ") # No verification needed for password
 
         # Ask the user to enter the list of urls / ip addresses to ping, or use the default list
-        print(format.BOLD + format.PINK + "\nStep 03/9384: Ping List" + format.END)
+        print(format.BOLD + format.PINK + "\nStep 03/11: Ping List" + format.END)
         print("This is the list of websites / servers / IP addresses that the program will ping to check the internet connection.")
         print("By default, the program will ping the following list of websites/servers:")
         print("1) 8.8.8.8             (Google's Public DNS Server)")
@@ -153,7 +153,7 @@ def program_setup_wizzard():
             ping_list = ["8.8.8.8", "1.1.1.1", "www.apple.com", "www.azure.com", "www.amazonaws.com"]
 
         # Ask the user to enter how many of the ping addresses must be reachable to consider the internet connection as unstable
-        print(format.BOLD + format.PINK + "\nStep 04/9384: Ping Addresses Threshold" + format.END)
+        print(format.BOLD + format.PINK + "\nStep 04/11: Ping Addresses Threshold" + format.END)
         print("This is the number of ping addresses that must be failed to consider the internet connection as unstable.")
         print("For example, if you enter '2', the program will consider the internet connection as unstable if 2 or more ping addresses are unreachable and will reboot the network.")
         print(f"By default, the program will consider the internet connection as unstable if 100% of the ping addresses ({len(ping_list)}) are unreachable.")
@@ -161,7 +161,7 @@ def program_setup_wizzard():
         unreachable_ping_threshold = user_input_number_in_range(1, len(ping_list), True)
 
         # Ask the user to enter the frequency of the ping check cycles
-        print(format.BOLD + format.PINK + "\nStep 05/9384: Ping Check Cycle Frequency" + format.END)
+        print(format.BOLD + format.PINK + "\nStep 05/11: Ping Check Cycle Frequency" + format.END)
         print("This is the number of seconds to wait between each ping check cycle.")
         print("For example, if you enter '30', the program will check the internet connection every 30 minutes.")
         print("By default, the program will check the internet connection every 10 minutes.")
@@ -169,7 +169,7 @@ def program_setup_wizzard():
         ping_check_frequency = user_input_number_in_range(1, 483840, True)
 
         # Ask the user to enter the number of times to retry the ping if it fails
-        print(format.BOLD + format.PINK + "\nStep 06/9384: Ping Retry Interval" + format.END)
+        print(format.BOLD + format.PINK + "\nStep 06/11: Ping Retry Amount" + format.END)
         print("This is the number of retries to attempt if the ping fails for an address.")
         print("For example, if you enter '2', the program will retry the ping 2 times before considering the address as unreachable.")
         print("Or if you enter '0', the program will not retry the ping and consider the address as unreachable after the first failed ping.")
@@ -178,7 +178,7 @@ def program_setup_wizzard():
         ping_retry_amount = user_input_number_in_range(0, 10, True)
 
         # Ask the user to enter the number of seconds to wait between each ping retry if the ping fails
-        print(format.BOLD + format.PINK + "\nStep 07/9384: Ping Retry Interval" + format.END)
+        print(format.BOLD + format.PINK + "\nStep 07/11: Ping Retry Interval" + format.END)
         print("This is the number of seconds to wait between each ping retry if the ping fails.")
         print("For example, if you enter '10', the program will wait 10 seconds between each ping retry.")
         print("By default, the program will wait 10 seconds between each ping retry.")
@@ -186,7 +186,7 @@ def program_setup_wizzard():
         ping_retry_interval = user_input_number_in_range(1, 300, True)
 
         # Ask the user to enter the number of seconds to wait between each network reboot
-        print(format.BOLD + format.PINK + "\nStep 08/9384: Network Reboot Interval" + format.END)
+        print(format.BOLD + format.PINK + "\nStep 08/11: Network Reboot Interval" + format.END)
         print("This is the number of minutes to wait before checking the internet connection after rebooting the network.")
         print("For example, if you enter '15', the program will wait 15 minutes before checking the internet connection after rebooting the network.")
         print("By default, the program will wait 15 minutes before starting the internet connection check cycle after rebooting the network.")
@@ -194,7 +194,7 @@ def program_setup_wizzard():
         network_reboot_interval = user_input_number_in_range(5, 1440, True)
 
         # Ask the user to enter the number of times to reboot the network before giving up (going into cooldown, then retrying)
-        print(format.BOLD + format.PINK + "\nStep 09/9384: Network Reboot Retry Count" + format.END)
+        print(format.BOLD + format.PINK + "\nStep 09/11: Network Reboot Retry Count" + format.END)
         print("This is the number of times the program will reboot the network before giving up if the internet connection is still unstable.")
         print("For example, if you enter '3', the program will reboot the network 3 times and if the internet connection is still unstable in a row, the program will go into a cooldown period (which you will specify next).")
         print("By default, the program will reboot the network 3 times before giving up.")
@@ -202,7 +202,7 @@ def program_setup_wizzard():
         network_reboot_retry_count = user_input_number_in_range(1, 10, True)
 
         # Ask the user to enter the cooldown period after consecutive network reboots
-        print(format.BOLD + format.PINK + "\nStep 10/9384: Network Reboot Cooldown Period" + format.END)
+        print(format.BOLD + format.PINK + "\nStep 10/11: Network Reboot Cooldown Period" + format.END)
         print("This is the number of minutes to wait before checking the internet connection again after multiple consecutive network reboots.")
         print("For example, if you enter '60', the program will wait 60 minutes (1 hour) before checking the internet connection again after multiple reboots.")
         print("By default, the program will wait 120 minutes before checking the internet connection again after multiple reboots.")
@@ -210,7 +210,7 @@ def program_setup_wizzard():
         network_reboot_cooldown_period = user_input_number_in_range(1, 1440, True)
 
         # Ask the user to enter if they want to log the connection status, checks and reboots to a file
-        print(format.BOLD + format.PINK + "\nStep 11/9384: Log File" + format.END)
+        print(format.BOLD + format.PINK + "\nStep 11/11: Log File" + format.END)
         print("Do you want to log the connection status, checks and reboots to a file? (located in `logs` folder as json)")
         print("If you choose 'Y', the program will log the connection status, checks and reboots to a file in the program directory. If you choose 'N', the program will not log the connection status, checks and reboots to a file.")
         print("By default, the program will not log the connection status, checks and reboots to a file for privacy security.")

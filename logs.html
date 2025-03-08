@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Logs Viewer</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+      background: #f4f4f4;
+    }
+    .container {
+      max-width: 1200px;
+      margin: auto;
+      background: #fff;
+      padding: 20px;
+      box-shadow: 0 2px 6px rgba(27, 27, 27, 0.1);
+      border-radius: 10px;
+    }
+    h1 {
+      text-align: center;
+    }
+    label {
+      margin-right: 8px;
+      font-weight: bold;
+    }
+    select {
+      padding: 8px;
+      margin-right: 20px;
+      font-size: 1rem;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+    th, td {
+      padding: 12px 8px;
+      text-align: left;
+      border-bottom: 1px solid #ddd;
+    }
+    th {
+      background: #f2f2f2;
+    }
+    tr:hover {
+      background-color: #f5f5f5;
+    }
+    .status-dot {
+      height: 12px;
+      width: 12px;
+      border-radius: 50%;
+      display: inline-block;
+      margin-right: 6px;
+      vertical-align: middle;
+    }
+    .status-success {
+      background-color: rgb(43, 181, 43);
+    }
+    .status-neutral {
+      background-color: rgb(186, 186, 186);
+    }
+    .status-error {
+      background-color: rgb(239, 41, 41);
+    }
+    .status-orange {
+      background-color: rgb(255, 169, 11);
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Automatic Network Rebooter Logs</h1>
+    <p><strong>Note:</strong> This is not a live website. It is a local file (<code>logs.html</code>) with no backend, so it can only be accessed on this computer. To search within this page, use ⌘ + F (on macOS) or Ctrl + F (on Windows).</p>      
+    <div>
+      <label for="yearSelect">Select Year:</label>
+      <select id="yearSelect">
+        <!-- Year options will be added by JS -->
+      </select>
+      <label for="monthSelect">Select Month:</label>
+      <select id="monthSelect">
+        <!-- Month options will be added by JS -->
+      </select>
+    </div>
+    <table id="logsTable">
+      <thead>
+        <tr>
+          <th>Date/Time</th>
+          <th>Status</th>
+          <th>Message</th>
+          <th>Ping</th>
+          <th>Internet</th>
+          <th>Reboot</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- Logs will be inserted here -->
+      </tbody>
+    </table>
+  </div>
+  <script>
+    document.addEventListener("DOMContentLoaded", function() {
+      // Define available logs structure.
+      // Update this mapping with the available years and months in your logs folder.
+      const availableLogs = {
+        "2025": ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"]
+        // add more years if needed
+      };
+
+      const yearSelect = document.getElementById("yearSelect");
+      const monthSelect = document.getElementById("monthSelect");
+      const logsTableBody = document.getElementById("logsTable").querySelector("tbody");
+
+      // Get current date details
+      const now = new Date();
+      const currentYear = now.getFullYear().toString();
+      const monthsArray = [
+        "January", "February", "March", "April", "May", "June", 
+        "July", "August", "September", "October", "November", "December"
+      ];
+      const currentMonth = monthsArray[now.getMonth()];
+
+      // Populate year select options and pre-select current year if available
+      for (let year in availableLogs) {
+        const option = document.createElement("option");
+        option.value = year;
+        option.textContent = year;
+        yearSelect.appendChild(option);
+      }
+      if (availableLogs[currentYear]) {
+        yearSelect.value = currentYear;
+      }
+
+      // Populate month select based on the selected year and pre-select current month if available
+      function populateMonthSelect() {
+        monthSelect.innerHTML = "";
+        const selectedYear = yearSelect.value;
+        const months = availableLogs[selectedYear] || [];
+        months.forEach(month => {
+          const option = document.createElement("option");
+          option.value = month;
+          option.textContent = month;
+          monthSelect.appendChild(option);
+        });
+        if (months.includes(currentMonth)) {
+          monthSelect.value = currentMonth;
+        }
+      }
+
+      // Helper function to create a table cell with status dot and optional text.
+      function createStatusCell(value, type) {
+        const td = document.createElement("td");
+        if (value.toLowerCase() === "n/a") {
+          // Only show a grey dot for n/a
+          const dot = document.createElement("span");
+          dot.classList.add("status-dot", "status-neutral");
+          td.appendChild(dot);
+        } else {
+          const dot = document.createElement("span");
+          // For ping and internet: yes/success => green dot, others red
+          if (type === "ping" || type === "internet") {
+            if (value.toLowerCase() === "yes" || value.toLowerCase() === "success") {
+              dot.classList.add("status-dot", "status-success");
+            } else {
+              dot.classList.add("status-dot", "status-error");
+            }
+          } else if (type === "reboot") {
+            // For reboot: yes => orange, no => green, others red
+            if (value.toLowerCase() === "yes") {
+              dot.classList.add("status-dot", "status-orange");
+            } else if (value.toLowerCase() === "no") {
+              dot.classList.add("status-dot", "status-success");
+            } else {
+              dot.classList.add("status-dot", "status-error");
+            }
+          } else {
+            dot.classList.add("status-dot", "status-neutral");
+          }
+          td.appendChild(dot);
+          // Also add the text after the dot
+          td.appendChild(document.createTextNode(" " + value));
+        }
+        return td;
+      }
+
+      // Load logs for the selected year/month
+      function loadLogs() {
+        const year = yearSelect.value;
+        const month = monthSelect.value;
+        // Assuming your logs are stored as "logs/[year]/[month].json"
+        const filePath = "logs/" + year + "/" + month + ".json";
+
+        fetch(filePath)
+          .then(response => {
+            if (!response.ok) {
+              throw new Error("Could not load file: " + filePath);
+            }
+            return response.json();
+          })
+          .then(data => {
+            // Sort logs newest to oldest based on the timestamp
+            data.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+            // Clear current table body
+            logsTableBody.innerHTML = "";
+            data.forEach(entry => {
+              const tr = document.createElement("tr");
+
+              // Date/Time
+              const timeTd = document.createElement("td");
+              timeTd.textContent = new Date(entry.timestamp).toLocaleString();
+              tr.appendChild(timeTd);
+
+              // Status with colored dot
+              const statusTd = document.createElement("td");
+              const dot = document.createElement("span");
+              dot.classList.add("status-dot");
+              if (entry.status.toLowerCase() === "success") {
+                dot.classList.add("status-success");
+              } else if (entry.status.toLowerCase() === "neutral") {
+                dot.classList.add("status-neutral");
+              } else {
+                dot.classList.add("status-error");
+              }
+              statusTd.appendChild(dot);
+              statusTd.appendChild(document.createTextNode(" " + entry.status));
+              tr.appendChild(statusTd);
+
+              // Message
+              const messageTd = document.createElement("td");
+              messageTd.textContent = entry.log.message;
+              tr.appendChild(messageTd);
+
+              // Ping Status
+              tr.appendChild(createStatusCell(entry.log.ping_status, "ping"));
+
+              // Internet Connection
+              tr.appendChild(createStatusCell(entry.log.internet_connection, "internet"));
+
+              // Network Reboot
+              tr.appendChild(createStatusCell(entry.log.network_reboot, "reboot"));
+
+              logsTableBody.appendChild(tr);
+            });
+          })
+          .catch(error => {
+            logsTableBody.innerHTML = "<tr><td colspan='6'>Error loading logs: " + error.message + "</td></tr>";
+          });
+      }
+
+      // Initial population and event listeners
+      populateMonthSelect();
+      loadLogs();
+
+      yearSelect.addEventListener("change", function() {
+        populateMonthSelect();
+        loadLogs();
+      });
+      monthSelect.addEventListener("change", loadLogs);
+    });
+  </script>
+</body>
+</html>
