@@ -10,6 +10,7 @@ import json
 import subprocess
 import program_setup
 from datetime import datetime
+import loger
 
 # Console colour variables
 class format:
@@ -25,9 +26,14 @@ class format:
     UNDERLINE = "\033[4m"
     END = "\033[0m"
 
+# Get the current timestamp
 def timestamp():
     # Get the current timestamp
     return datetime.now().strftime("%d/%m/%Y %H:%M:%S.%f")[:-4]
+
+# Mask a string with asterisks
+def mask_string(s):
+    return s[:4] + '*' * (len(s) - 4)
 
 # User input verification: IP address
 def verify_user_input_ip_address(ip_str):
@@ -285,6 +291,11 @@ if __name__ == "__main__":
         # Confirm the configuration settings to load
         confirm_settings_to_load()
 
+        # Check to see if config file has logs enabled
+        if configuration_settings["log_file"]:
+            loger.Initialise_log_file()
+            loger.write_to_log_file("neutral", "Program started - Configuration settings loaded")
+
         # Clear the terminal window
         os.system("clear")
 
@@ -296,17 +307,21 @@ if __name__ == "__main__":
             print(f" > {format.RED}{format.BOLD}Unsuccessful.{format.END} The router IP address is not set in the configuration settings.")
             print("Please enter the IP address of the router to continue...")
             configuration_settings["router_details"]["router_ip_address"] = user_input_ip_address()
-            print(f"Router IP address set to: {configuration_settings['router_details']['router_ip_address']} (not saved in the configuration settings)")
+            print(f" > {format.GREEN}{format.BOLD}Router IP address set{format.END}. (not saved in the configuration settings)")
+            loger.write_to_log_file("neutral", "Router IP address set manually")
         else:
             print(f" > {format.GREEN}{format.BOLD}Success!{format.END} The router IP address is set in the configuration settings.")
+            loger.write_to_log_file("neutral", "Router IP address set in the configuration settings")
 
         if configuration_settings["router_details"]["router_password"] == "" or configuration_settings["router_details"]["router_password"] == None or "router_password" not in configuration_settings["router_details"]:
             print(f" > {format.RED}{format.BOLD}Unsuccessful.{format.END} The router password is not set in the configuration settings.")
             print("Please enter the password of the router to continue...")
             configuration_settings["router_details"]["router_password"] = input("Enter the password of the router: ")
-            print(f"Router password set (not saved in the configuration settings)")
+            print(f" > {format.GREEN}{format.BOLD}Router password set{format.END}. (not saved in the configuration settings)")
+            loger.write_to_log_file("neutral", "Router password set manually")
         else:
             print(f" > {format.GREEN}{format.BOLD}Success!{format.END} The router password is set in the configuration settings.")
+            loger.write_to_log_file("neutral", "Router password set in the configuration settings")
 
         # Ask the user if they would like to test if the program can login to the router
         print(f"\n{format.BOLD}{format.CYAN}Do you want to test if the program can login to the router?{format.END}")
@@ -318,6 +333,7 @@ if __name__ == "__main__":
 
         if login_test.lower() == "y":
             test_login_to_router(configuration_settings)
+            loger.write_to_log_file("neutral", "User tested login to the router")
         else:
             print(f"{format.ITALIC}Skipping the login test...{format.END}")
 
@@ -333,6 +349,7 @@ if __name__ == "__main__":
 
             # Press to continue
             print(f"\n{format.ITALIC}Press enter to continue...{format.END}")
+            loger.write_to_log_file("neutral", "User tested rebooting the network","n/a", "n/a", "yes")
             input()
         else:
             print(f"{format.ITALIC}Skipping the network reboot test...{format.END}")
@@ -348,8 +365,10 @@ if __name__ == "__main__":
 
         if start_program.lower() == "y":
             print(f"{format.ITALIC}Starting the program with the configuration settings loaded...{format.END}\n")
+            loger.write_to_log_file("neutral", "User started the network monitoring")
         else:
             print("Ending the program...")
+            loger.write_to_log_file("neutral", "User ended the program")
             exit()
 
         while True:
@@ -378,12 +397,15 @@ if __name__ == "__main__":
                     # Ping the address to check the internet connection
                     if ping_address_bool(ping_address):
                         print(f"{timestamp()} >>> ({format.GREEN}Ping successful{format.END}) - {ping_address} - (attempt: {i + 1}/{ping_retry_amount + 1})")
+                        loger.write_to_log_file("success", f"Successfully pinged {ping_address} - (attempt: {i + 1}/{ping_retry_amount + 1})", "success")
                         break
                     else:
                         if ping_retry_amount > 1:
                             print(f"{timestamp()} >>> ({format.RED}Ping failed{format.END}) - {ping_address} - Will retry in {ping_retry_interval} seconds (attempt: {i + 1}/{ping_retry_amount + 1})")
+                            loger.write_to_log_file("error", f"Failed to ping {ping_address} - (attempt: {i + 1}/{ping_retry_amount + 1})", "error")
                         else:
                             print(f"{timestamp()} >>> ({format.RED}Ping failed{format.END}) - {ping_address}")
+                            loger.write_to_log_file("error", f"Failed to ping {ping_address}", "error")
                         specific_failed_pings += 1
                         time.sleep(ping_retry_interval)
                 
@@ -396,6 +418,7 @@ if __name__ == "__main__":
             if failed_pings >= unreachable_ping_threshold:
                 print(f"{timestamp()} >>> {format.RED}Internet connection is considered unstable. ({failed_pings}/{unreachable_ping_threshold} failed pings){format.END}")
                 print(f"{timestamp()} >>> Rebooting the network...")
+                loger.write_to_log_file("error", "Internet connection is considered unstable", "n/a", "no", "yes")
 
                 number_of_reboots_in_a_row += 1
 
@@ -406,35 +429,44 @@ if __name__ == "__main__":
 
                 # Generate login token
                 print(timestamp() + " >>> Generating login token...")
+                loger.write_to_log_file("neutral", "Generating login token")
                 token = generate_login_token(base_url, router_password)
                 if token:
                     print(timestamp() + " >>> Token generated successfully!")
+                    loger.write_to_log_file("success", "Token generated successfully", "n/a", "no", "yes")
                     time.sleep(2)
                     
                     # Reboot the system using the token
                     print(timestamp() + " >>> Rebooting the network...")
+                    loger.write_to_log_file("neutral", "Rebooting the network", "n/a", "no", "yes")
                     reboot_system(base_url, token)
 
                     # Logout
                     print(timestamp() + " >>> Logging out...")
+                    loger.write_to_log_file("neutral", "Logging out")
                     logout(base_url, token)
 
                     # wait after rebooting the network
                     print(f"{timestamp()} >>> Waiting for {configuration_settings['network']['network_reboot_interval']} minutes after rebooting the network...")
+                    loger.write_to_log_file("neutral", f"Waiting for {configuration_settings['network']['network_reboot_interval']} minutes after rebooting the network")
                     time.sleep(configuration_settings["network"]["network_reboot_interval"] * 60)
                     
             else:
                 print(f"{timestamp()} >>> {format.GREEN}Internet connection is considered stable. ({failed_pings}/{unreachable_ping_threshold} failed pings){format.END}")
+                loger.write_to_log_file("success", "Internet connection is considered stable", "n/a", "yes", "no")
                 number_of_reboots_in_a_row = 0
 
             # if the number of reboots in a row is greater than the network reboot retry count, go into cooldown period
             if number_of_reboots_in_a_row >= configuration_settings["network"]["network_reboot_retry_count"]:
                 print(f"{timestamp()} >>> {format.RED}Network reboot retry count reached. Going into cooldown period for {configuration_settings['network']['network_reboot_cooldown_period']} minutes...{format.END}")
+                loger.write_to_log_file("error", f"Network reboot retry count reached. Going into cooldown period for {configuration_settings['network']['network_reboot_cooldown_period']} minutes", "n/a", "no", "no")
                 time.sleep(configuration_settings["network"]["network_reboot_cooldown_period"] * 60)
                 print(f"{timestamp()} >>> Cooldown period ended. Resuming network monitoring...")
+                loger.write_to_log_file("neutral", "Cooldown period ended. Resuming network monitoring")
 
             ping_check_frequency = configuration_settings["ping"]["ping_check_frequency"]
             print(f"{timestamp()} >>> Waiting for {ping_check_frequency} minutes before checking the internet connection again...")
+            loger.write_to_log_file("neutral", f"Waiting for {ping_check_frequency} minutes before checking the internet connection again")
             time.sleep(ping_check_frequency * 60)
     else:
         # Check failed

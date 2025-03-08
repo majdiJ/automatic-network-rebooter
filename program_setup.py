@@ -1,6 +1,6 @@
 # This file is used to setup the configuration for the automatic network rebooter
 # This file can be run by itself to setup the configuration or be imported and ran
-# by the main program `main.py` when it detects that the configuration file is missing
+# by the main program (`main.py`) when it detects that the configuration file is missing
 # and / or first time setup is needed.
 
 # Import the required libraries
@@ -40,9 +40,11 @@ def verify_user_input_ip_address(ip_str):
     return True
 
 # User input handling: IP address
-def user_input_ip_address():
+def user_input_ip_address(allow_none=False):
     while True:
         user_input = input("Enter the IP address of the router: ")
+        if allow_none and user_input == "":
+            return None
         if verify_user_input_ip_address(user_input):
             return user_input
         print(f"\n{format.RED}Invalid IP address. Please try again.{format.END}")
@@ -125,7 +127,7 @@ def program_setup_wizzard():
         # Ask the user to enter the router's IP address / gateway address
         print(format.BOLD + format.PINK + "\nStep 01/9384: Router IP Address" + format.END)
         print("Please enter the IP address of your router / modem. This is usually the gateway address.")
-        router_ip_address = user_input_ip_address()
+        router_ip_address = user_input_ip_address(True)
 
         # Ask the user to enter the router's password
         print(format.BOLD + format.PINK + "\nStep 02/9384: Router Password" + format.END)
@@ -234,8 +236,10 @@ def program_setup_wizzard():
             network_reboot_retry_count = 3
         if network_reboot_cooldown_period == "" or network_reboot_cooldown_period == None:
             network_reboot_cooldown_period = 120
-        if log_file == "" or log_file == None:
-            log_file = "n"
+        if log_file == "" or log_file == None or log_file.lower() == "n":
+            log_file = False
+        elif log_file.lower() == "y":
+            log_file = True
 
         # Print the configuration settings to the user
         print(format.BOLD + format.PINK + "\nConfiguration Settings" + format.END)  
@@ -249,6 +253,7 @@ def program_setup_wizzard():
         print(f"Network Reboot Interval: {network_reboot_interval}")
         print(f"Network Reboot Retry Count: {network_reboot_retry_count}")
         print(f"Network Reboot Cooldown Period: {network_reboot_cooldown_period}")
+        print(f"Log File: {log_file}")
 
         # Ask the user to confirm the configuration settings
         print(format.BOLD + format.PINK + "\nDo you want to save these settings?" + format.END)
@@ -275,7 +280,8 @@ def program_setup_wizzard():
             "network_reboot_interval": network_reboot_interval,
             "network_reboot_retry_count": network_reboot_retry_count,
             "network_reboot_cooldown_period": network_reboot_cooldown_period
-        }
+        },
+        "log_file": log_file
     }
 
     try:
