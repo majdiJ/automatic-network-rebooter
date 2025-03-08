@@ -1,46 +1,57 @@
 # automatic-network-rebooter
-A Python script that monitors internet connectivity and automatically reboots the network if a connection issue is detected. Designed to run on a home server, it ensures continuous internet access by resetting the Virgin Media router when necessary.
 
-## How to get started
-The program only has one required package (`requests`), to run the program you will first need to install this by running either running `pip install requests` or `pip install -r requirements.txt` in your terminal / console.
+A Python script that monitors internet connectivity and automatically reboots your network via its admin portal if a connection issue is detected. Designed to run 24/7 on a computer connected to a Virgin Media network.
+
+## Overview
+Routers can sometimes lose internet connectivity even when everything appears normal. This script periodically pings a WAN address, and if no connection is detected, it reboots your router (designed for the Virgin Media Hub 5). Feel free to modify the code to support other routers - contributions are welcome! 💙🧑‍💻
+
+## Requirements
+- A computer that can run continuously on your network.
+- Python 3.7 or higher.
+- The `requests` package (install with `pip install requests` or `pip install -r requirements.txt`).
+- Supported router:
+    - Virgin Media Hub 5 (router or modem mode)
+- Gateway IP address and router admin credentials.
+
+## Recommendations
+- Run this on a device connected via Ethernet.
+- Avoid deploying on networks or devices you can’t physically access to prevent accidental lockouts.
+- Logging is disabled by default; enable it for troubleshooting if needed.
+
+## Disclaimer
+- Use this tool only on networks you are authorised to manage.
+- Verify your `config.json` settings to avoid unintentional reboot loops.
+
+## Getting Started
+1. **Install dependencies:**
+   ```bash
+   pip install requests
+   ```
+   or
+   ```bash
+   pip install -r requirements.txt
+   ```
+2. **Run the script:**
+   ```bash
+   python main.py
+   ```
+3. **First-time setup:**  
+   If no `config.json` is found, you’ll be guided through a setup wizard to create one. You can edit or delete this file later to reconfigure the program.
 
 ## Support
-### Gateway IP address / Router IP Address
-This is the IP address of the router / modem you want to rebbot. For Virgin media Hub 5 that's ussualy `192.168.0.1` (or `192.168.100.1` if your hub is set to modem mode).
+### Router Details
+- **Gateway IP Address:** Typically for vigin media hub 5 `192.168.0.1` (or `192.168.100.1` in modem mode).
+- **Admin Password:** Found on your router or accompanying documentation/ Passwords vary per device.
 
-## Privacy, Security, and Transparency Notice
+## Privacy, Security, and Transparency
+- **No Data Collection:** The script solely pings to check connectivity and never collects or transmits personal data.
+- **Optional Local Logging:** Debug logs are stored locally and remain off by default.
+- **Minimal Dependencies:** Only relies on the `requests` package; all other libraries are built into Python.
+- **User Configurability:** All network check targets and credentials are fully configurable via `config.json`.
+- **Open Source:** The full source code is available for review, ensuring complete transparency.
 
-Privacy is a fundamental human right—everyone deserves security and the freedom to know exactly how a program works. This script is built with that philosophy in mind:
-
-## TL;DR:
-- No user data is collected or transmitted.  
-- Optional logs are stored locally and off by default.  
-- Only essential, built-in dependencies are used.  
-- Network check targets and credentials are fully user-configurable.  
-- The source code is open for review, ensuring complete transparency.  
-
-- **No Data Collection**  
-  - The program does not collect or transmit any user data to a central server.  
-  - Its sole function is to monitor connectivity via pings, not to harvest personal information.
-
-- **Optional Local Logging**  
-  - Detailed logs are available if enabled, but are **turned off by default**.  
-  - When activated, logs are stored only in the program folder and are not shared externally.
-
-- **Minimal Dependencies**  
-  - Only one external module is needed (Python’s built-in request library); all other features use standard Python libraries.
-
-- **User Configurable Network Checks**  
-  - The list of IP addresses/websites to ping (e.g., generic targets like `azure.com` or similar services) is entirely user-configurable in the setup file.  
-  - The default list is chosen to avoid targeting any specific site and can be modified at any time.
-
-- **Secure Handling of Sensitive Information**  
-  - Router credentials (IP address and password) can be saved in the configuration file or entered at runtime, ensuring no sensitive data is stored permanently.  
-  - Any sensitive tokens are partially masked and are never displayed in logs.
-
-- **Open Source Transparency**  
-  - The entire source code is open for review. You are encouraged to read it so you know exactly how the program operates.  
-  - The only user-generated data is the configuration file created during setup, which can be deleted at any time.  
-  - No information about your computer is collected or uploaded. (Note: the pinged addresses may see your IP address, but this is fully under your control.)
-
-By using this script, you can be confident that your privacy and security are respected at every step.
+### TL;DR
+- **No data is collected or transmitted.**
+- **Logging is optional and local.**
+- **Minimal dependencies and full configurability.**
+- **Open source for complete transparency.**
